@@ -23,7 +23,7 @@ namespace LLModMenu
 
         private void Start()
         {
-            try { ReadIni(); } catch { Debug.Log("ModMenu: Could not load " + @"\ModSettings\" + gameObject.name + ".ini" + " so we will create it instead"); }
+            try { ReadIni(); } catch { Debug.Log("ModMenu: Could not load " + Path.DirectorySeparatorChar + "ModSettings" + Path.DirectorySeparatorChar + gameObject.name + ".ini" + " so we will create it instead"); }
             InitConfig();
             ReadIni();
         }
@@ -70,7 +70,7 @@ namespace LLModMenu
 
         public void ReadIni()
         {
-            string[] lines = File.ReadAllLines(Directory.GetParent(Application.dataPath).FullName + @"\ModSettings\" + gameObject.name + ".ini");
+            string[] lines = File.ReadAllLines(Path.Combine(Directory.GetParent(Application.dataPath).FullName, "ModSettings", gameObject.name + ".ini"));
             configBools.Clear();
             configKeys.Clear();
             configInts.Clear();

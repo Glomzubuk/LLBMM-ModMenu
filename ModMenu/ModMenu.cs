@@ -45,7 +45,7 @@ namespace LLModMenu
         public int switchInputModeTimer = 0;
 
         private string modVersion = "v1.1.0";
-        private string iniLocation = Path.GetDirectoryName(Application.dataPath) + "\\ModSettings";
+        private string iniLocation = Path.Combine(Path.GetDirectoryName(Application.dataPath), "ModSettings");
 
 
 
@@ -207,7 +207,7 @@ namespace LLModMenu
             configHeaders.Clear();
             configText.Clear();
 
-            string[] lines = File.ReadAllLines(iniLocation + @"\" + modName + ".ini");
+            string[] lines = File.ReadAllLines(Path.Combine(iniLocation, modName + ".ini"));
             foreach (string line in lines)
             {
                 if (line.StartsWith("(key)"))
@@ -313,7 +313,7 @@ namespace LLModMenu
 
                         if (GUILayout.Button(str, ModMenuStyle.button, GUILayout.MinWidth(100)))
                         {
-                            IniFile modIni = new IniFile(iniLocation + @"\" + currentOpenMod + ".ini");
+                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
                             if (val == "true")
                             {
                                 modIni.Write(key, "false");
@@ -342,7 +342,7 @@ namespace LLModMenu
                         GUILayout.Space(10);
                         if (GUILayout.Button("  -  ", ModMenuStyle.button))
                         {
-                            IniFile modIni = new IniFile(iniLocation + @"\" + currentOpenMod + ".ini");
+                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
                             var j = Convert.ToInt32(configInts[key]);
                             j--;
                             modIni.Write(key, j.ToString());
@@ -351,7 +351,7 @@ namespace LLModMenu
 
                         if (GUILayout.Button("  +  ", ModMenuStyle.button))
                         {
-                            IniFile modIni = new IniFile(iniLocation + @"\" + currentOpenMod + ".ini");
+                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
                             var j = Convert.ToInt32(configInts[key]);
                             j++;
                             modIni.Write(key, j.ToString());
@@ -364,7 +364,7 @@ namespace LLModMenu
 
                         if (GUILayout.Button("Set Value From Textbox", ModMenuStyle.button))
                         {
-                            IniFile modIni = new IniFile(iniLocation + @"\" + currentOpenMod + ".ini");
+                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
                             if (Int32.TryParse(intList[ints], out int n))
                             {
                                 modIni.Write(key, intList[ints]);
@@ -377,7 +377,7 @@ namespace LLModMenu
                     }
                     else if (option == "(slider)")
                     {
-                        IniFile modIni = new IniFile(iniLocation + @"\" + currentOpenMod + ".ini");
+                        IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
 
                         var key = configSliders.Keys.ElementAt(sliders);
                         string format = key.Remove(0, 8);
@@ -442,29 +442,29 @@ namespace LLModMenu
 
         public void WriteIni(string modName, List<string> writeQueue, Dictionary<string, string> keyBinds, Dictionary<string, string> bools, Dictionary<string, string> ints, Dictionary<string, string> sliders, Dictionary<string, string> headers, Dictionary<string, string> gaps, Dictionary<string, string> text)
         {
-
-            if (File.Exists(iniLocation + @"\" + modName + ".ini"))
+            string modIniPath = Path.Combine(iniLocation, modName + ".ini");
+            if (File.Exists(modIniPath))
             {
-                string[] lines = File.ReadAllLines(iniLocation + @"\" + modName + ".ini");
+                string[] lines = File.ReadAllLines(modIniPath);
                 foreach (string key in writeQueue)
                 {
                     try
                     {
                         if (!lines[writeQueue.IndexOf(key) + 1].Contains(key))
                         {
-                            Debug.Log("ModMenu: " + iniLocation + @"\" + modName + ".ini has been remade because it did not match what was expected");
-                            File.Delete(iniLocation + @"\" + modName + ".ini");
+                            Debug.Log("ModMenu: "+ modIniPath +" has been remade because it did not match what was expected");
+                            File.Delete(modIniPath);
                             break;
                         };
                     } catch
                     {
-                        Debug.Log("ModMenu: " + iniLocation + @"\" + modName + ".ini has been remade because it did not match what was expected");
-                        File.Delete(iniLocation + @"\" + modName + ".ini");
+                        Debug.Log("ModMenu: "+ modIniPath +" has been remade because it did not match what was expected");
+                        File.Delete(modIniPath);
                         break;
                     }
                 }
             }
-            IniFile modIni = new IniFile(iniLocation + @"\" + modName + ".ini");
+            IniFile modIni = new IniFile(modIniPath);
 
 
             if (writeQueue.Count() > 0)
@@ -506,7 +506,7 @@ namespace LLModMenu
         public List<string> GetOptionsQueue(string modName)
         {
             List<string> ret = new List<string>();
-            string[] lines = File.ReadAllLines(iniLocation + @"\" + modName + ".ini");
+            string[] lines = File.ReadAllLines(Path.Combine(iniLocation, modName + ".ini"));
             if (lines.Length > 0)
             {
                 foreach (string line in lines)
@@ -540,7 +540,7 @@ namespace LLModMenu
         {
             bool pressed = false;
             configKeys[key] = "WAITING FOR KEY";
-            IniFile modIni = new IniFile(iniLocation + @"\" + currentOpenMod + ".ini");
+            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
             while (!pressed)
             {
                 foreach (KeyCode vKey in System.Enum.GetValues(typeof(KeyCode)))
