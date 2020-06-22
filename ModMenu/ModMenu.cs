@@ -17,6 +17,7 @@ namespace LLModMenu
         public static ModMenu Instance { get { return instance; } }
         public static void Initialize() { GameObject gameObject = new GameObject("ModMenu"); ModMenu modLoader = gameObject.AddComponent<ModMenu>(); DontDestroyOnLoad(gameObject); instance = modLoader; ModMenuStyle.InitStyle();  }
 
+
         public LLButton button = null;
         public List<string> mods = new List<string>();
         public List<LLButton> modButtons = new List<LLButton>();
@@ -24,18 +25,13 @@ namespace LLModMenu
         public bool inModSubOptions = false;
         public ScreenMenu mainmenu = null;
         public ScreenBase submenu = null;
-        public Dictionary<string, string> configKeys = new Dictionary<string, string>();
-        public Dictionary<string, string> configBools = new Dictionary<string, string>();
-        public Dictionary<string, string> configInts = new Dictionary<string, string>();
-        public List<string> intList = new List<string>();
-        public Dictionary<string, string> configHeaders = new Dictionary<string, string>();
-        public Dictionary<string, string> configSliders = new Dictionary<string, string>();
-        public List<float> sliderList = new List<float>();
-        public Dictionary<string, string> configText = new Dictionary<string, string>();
-        public List<string> optionsQueue = new List<string>();
 
         public string currentOpenMod = "";
-        public string newKey = "";
+        private string previousOpenMod = "";
+
+        private string keyToRebind = "";
+        private bool rebindingKey = false;
+        private readonly Array keyCodes = System.Enum.GetValues(typeof(KeyCode));
         public Vector2 keybindScrollpos = new Vector2(0,0);
         public Vector2 optionsScrollpos = new Vector2(0, 0);
         public Vector2 optionsTextpos = new Vector2(0, 0);
@@ -46,11 +42,26 @@ namespace LLModMenu
 
         private string modVersion = "v1.1.0";
         private string iniLocation = Path.Combine(Path.GetDirectoryName(Application.dataPath), "ModSettings");
-
+        public ConfigManager configManager = new ConfigManager(Path.Combine(Path.GetDirectoryName(Application.dataPath), "ModSettings"));
 
 
         private void Update()
         {
+
+            if (this.rebindingKey && Input.anyKeyDown)
+            {
+                foreach (KeyCode keyCode in keyCodes)
+                {
+                    if (Input.GetKey(keyCode))
+                    {
+                        Config modConfig = configManager.GetModConfig(this.currentOpenMod);
+                        modConfig.configKeys[this.keyToRebind] = keyCode;
+                        modConfig.Save();
+                        this.rebindingKey = false;
+                    }
+                }
+            }
+
             if (!Directory.Exists(iniLocation)) Directory.CreateDirectory(iniLocation);
             if (mainmenu == null) { mainmenu = FindObjectOfType<ScreenMenu>(); }
             if (submenu == null) { submenu = UIScreen.currentScreens[1]; }
@@ -102,16 +113,20 @@ namespace LLModMenu
 
             if (switchInputModeTimer != 30) switchInputModeTimer++;
 
-            if (inModSubOptions) //If we are within the options of a spiesific mod.
+            if (inModSubOptions && this.currentOpenMod != this.previousOpenMod) //If we are within the options of a spiesific mod.
             {
-                Component comp = GameObject.Find(currentOpenMod).GetComponent(currentOpenMod); //Get the script for that mod.
-                comp.SendMessage("ReadIni"); //Tell it to run the "ReadIni" method.
+                Debug.Log("prev: " + previousOpenMod + " | current: " + currentOpenMod);
+                this.previousOpenMod = this.currentOpenMod;
+                //Component comp = GameObject.Find(currentOpenMod).GetComponent(currentOpenMod); //Get the script for that mod.
+                //comp.SendMessage("ReadIni"); //Tell it to run the "ReadIni" method.
+                this.configManager.GetModConfig(this.currentOpenMod).LoadFromFile();
             }
 
             if (Controller.mouseKeyboard.GetButton(InputAction.ESC))
             {
                 if (inModOptions)
                 {
+                    this.previousOpenMod = "";
                     UIScreen.Open(ScreenType.MENU_OPTIONS, 1, ScreenTransition.MOVE_RIGHT);
                     inModOptions = false;
                     inModSubOptions = false;
@@ -143,6 +158,7 @@ namespace LLModMenu
 
         private void QuitClick(int playerNr)
         {
+            this.previousOpenMod = "";
             if (inModOptions == true)
             {
                 UIScreen.Open(ScreenType.MENU_OPTIONS, 1);
@@ -177,6 +193,7 @@ namespace LLModMenu
             var y1 = Screen.height / 10;
             var x2 = Screen.width - (Screen.width/6)*2;
             var y2 = Screen.height - (Screen.height / 6);
+            GUI.Box(new Rect(10, 10, 20, 20), "ModMenu " + modVersion, ModMenuStyle.versionBox);
 
 
             if (inModSubOptions)
@@ -198,53 +215,6 @@ namespace LLModMenu
             currentOpenMod = modName;
             ScreenBase screen = UIScreen.Open(ScreenType.OPTIONS, 1);
             mainmenu.lbTitle.text = modName.ToUpper() + " SETTINGS";
-            configKeys.Clear();
-            configBools.Clear();
-            configInts.Clear();
-            intList.Clear();
-            configSliders.Clear();
-            sliderList.Clear();
-            configHeaders.Clear();
-            configText.Clear();
-
-            string[] lines = File.ReadAllLines(Path.Combine(iniLocation, modName + ".ini"));
-            foreach (string line in lines)
-            {
-                if (line.StartsWith("(key)"))
-                {
-                    string[] split = line.Split('=');
-                    configKeys.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(bool)"))
-                {
-                    string[] split = line.Split('=');
-                    configBools.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(int)"))
-                {
-                    string[] split = line.Split('=');
-                    configInts.Add(split[0], split[1]);
-                    intList.Add(split[1]);
-                }
-                else if (line.StartsWith("(slider)"))
-                {
-                    string[] split = line.Split('=');
-                    configSliders.Add(split[0], split[1]);
-
-                    string[] valMinMax = split[1].Split('|');
-                    sliderList.Add(float.Parse(valMinMax[0]));
-                }
-                else if (line.StartsWith("(header)"))
-                {
-                    string[] split = line.Split('=');
-                    configHeaders.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(text)"))
-                {
-                    string[] split = line.Split('=');
-                    configText.Add(split[0], split[1]);
-                }
-            }
         }
 
 
@@ -254,26 +224,32 @@ namespace LLModMenu
             GUILayout.BeginHorizontal();
             GUILayout.BeginVertical();
             keybindScrollpos = GUILayout.BeginScrollView(keybindScrollpos, false, true);
-            var keyList = new List<string>();
-            if (configKeys.Count > 0)
-            {
-                foreach (KeyValuePair<string, string> keyval in configKeys) keyList.Add(keyval.Key);
 
-                foreach (string key in keyList)
+            Config modConfig = this.configManager.GetModConfig(currentOpenMod);
+
+            foreach (KeyValuePair<string, KeyCode> entry in modConfig.configKeys)
+            {
+                string formatted = UppercaseFirst(Regex.Replace(entry.Key, "([a-z])([A-Z])", "$1 $2"));
+                GUILayout.BeginHorizontal();
+                GUILayout.FlexibleSpace();
+                GUILayout.Label(formatted + ":", ModMenuStyle.labStyle);
+                GUILayout.Space(10);
+
+                string displayText;
+
+                if (this.rebindingKey && this.keyToRebind == entry.Key)
+                    displayText = "WAITING FOR KEY";
+                else
+                    displayText = entry.Value.ToString();
+
+                if (GUILayout.Button("[" + displayText + "]", ModMenuStyle.button, GUILayout.MinWidth(100)))
                 {
-                    string format = key.Remove(0, 5);
-                    string formatted = UppercaseFirst(Regex.Replace(format, "([a-z])([A-Z])", "$1 $2"));
-                    GUILayout.BeginHorizontal();
-                    GUILayout.FlexibleSpace();
-                    GUILayout.Label(formatted + ":", ModMenuStyle.labStyle);
-                    GUILayout.Space(10);
-                    if (GUILayout.Button("[" + configKeys[key] + "]", ModMenuStyle.button, GUILayout.MinWidth(100)))
-                    {
-                        StartCoroutine(BindKey(key));
-                    }
-                    GUILayout.FlexibleSpace();
-                    GUILayout.EndHorizontal();
+                    this.rebindingKey = true;
+                    this.keyToRebind = entry.Key;
                 }
+                
+                GUILayout.FlexibleSpace();
+                GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
@@ -287,131 +263,126 @@ namespace LLModMenu
             GUILayout.BeginVertical();
             optionsScrollpos = GUILayout.BeginScrollView(optionsScrollpos, false, true);
 
-            optionsQueue = GetOptionsQueue(currentOpenMod);
-            int bools = 0;
-            int ints = 0;
-            int sliders = 0;
-            int headers = 0;
+            Config modConfig = this.configManager.GetModConfig(this.currentOpenMod);
+            List<Entry> tmpOptionList = new List<Entry>(modConfig.optionList); // needed since we might modify the list during the loop
 
-            if (optionsQueue != null)
+            foreach (Entry option in tmpOptionList)
             {
-                foreach (string option in optionsQueue)
+                if (option.Type == "bool")
                 {
-                    if (option == "(bool)")
-                    {
-                        var key = configBools.Keys.ElementAt(bools);
-                        var val = configBools.Values.ElementAt(bools);
-                        string format = key.Remove(0, 6);
-                        string formatted = UppercaseFirst(Regex.Replace(format, "([a-z])([A-Z])", "$1 $2"));
-                        GUILayout.BeginHorizontal();
-                        GUILayout.FlexibleSpace();
-                        GUILayout.Label(formatted + ":", ModMenuStyle.labStyle);
-                        GUILayout.Space(10);
-                        var str = "";
-                        if (val == "true") str = "Enabled";
-                        else str = "Disabled";
+                    string key = option.Key;
+                    bool val = modConfig.GetBool(key);
+                    string formatted = UppercaseFirst(Regex.Replace(key, "([a-z])([A-Z])", "$1 $2"));
 
-                        if (GUILayout.Button(str, ModMenuStyle.button, GUILayout.MinWidth(100)))
+                    GUILayout.BeginHorizontal();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(formatted + ":", ModMenuStyle.labStyle);
+                    GUILayout.Space(10);
+
+                    var str = "";
+                    if (val) str = "Enabled";
+                    else str = "Disabled";
+
+                    bool isPressed = GUILayout.Button(str, ModMenuStyle.button, GUILayout.MinWidth(100));
+                    if (isPressed)
+                    {
+                        modConfig.configBools[key] = !val;
+                        modConfig.Save();
+                    }
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                }
+                else if (option.Type == "int")
+                {
+                    string key = option.Key;
+                    int value = modConfig.GetInt(key);
+
+                    string formatted = UppercaseFirst(Regex.Replace(key, "([a-z])([A-Z])", "$1 $2"));
+                    GUILayout.BeginHorizontal();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(formatted + ": ", ModMenuStyle.labStyle);
+                    GUILayout.Box(value.ToString(), ModMenuStyle.box);
+                    GUILayout.Space(10);
+
+                    bool isMinusPressed = GUILayout.Button("  -  ", ModMenuStyle.button);
+                    if (isMinusPressed)
+                    {
+                        modConfig.configInts[key] = value - 1;
+                        modConfig.Save();
+                    }
+
+                    bool isPlusPressed = GUILayout.Button("  +  ", ModMenuStyle.button);
+                    if (isPlusPressed)
+                    {
+                        modConfig.configInts[key] = value + 1;
+                        modConfig.Save();
+                    }
+
+
+                    GUILayout.Space(30);
+
+                    string intValue = GUILayout.TextField(value.ToString(), 10, ModMenuStyle._textFieldStyle, GUILayout.MinWidth(32));
+
+                    bool isFromTextPressed = GUILayout.Button("Set Value From Textbox", ModMenuStyle.button);
+                    if (Int32.TryParse(intValue, out int n))
+                    {
+                        modConfig.configInts[key] = n;
+                        if (isFromTextPressed)
                         {
-                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
-                            if (val == "true")
-                            {
-                                modIni.Write(key, "false");
-                                configBools[key] = "false";
-                            }
-                            else
-                            {
-                                modIni.Write(key, "true");
-                                configBools[key] = "true";
-                            }
+                            modConfig.Save();
                         }
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndHorizontal();
-                        bools++;
                     }
-                    else if (option == "(int)")
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                }
+                else if (option.Type == "slider")
+                {
+
+                    string key = option.Key;
+                    string value = modConfig.configSliders[key];
+                    int storedSliderValue = modConfig.GetSliderValue(key);
+
+                    string formatted = UppercaseFirst(Regex.Replace(key, "([a-z])([A-Z])", "$1 $2"));
+
+                    string[] valMinMax = value.Split('|');
+                    float sliderValue = storedSliderValue;
+
+                    GUILayout.BeginHorizontal();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Label(formatted + ": ", ModMenuStyle.labStyle);
+                    sliderValue = GUILayout.HorizontalSlider(sliderValue, float.Parse(valMinMax[1]), float.Parse(valMinMax[2]), ModMenuStyle._sliderBackgroundStyle, ModMenuStyle._sliderThumbStyle, GUILayout.Width(300));
+                    GUILayout.Box(System.Math.Round(Double.Parse(sliderValue.ToString())).ToString(), ModMenuStyle.box);
+
+                    int newSliderValue = (int)System.Math.Round(sliderValue);
+                    if (newSliderValue != storedSliderValue)
                     {
-                        var key = configInts.Keys.ElementAt(ints);
-                        string format = key.Remove(0, 5);
-                        string formatted = UppercaseFirst(Regex.Replace(format, "([a-z])([A-Z])", "$1 $2"));
-                        GUILayout.BeginHorizontal();
-                        GUILayout.FlexibleSpace();
-
-                        GUILayout.Label(formatted + ": ", ModMenuStyle.labStyle);
-                        GUILayout.Box(configInts[key], ModMenuStyle.box);
-                        GUILayout.Space(10);
-                        if (GUILayout.Button("  -  ", ModMenuStyle.button))
-                        {
-                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
-                            var j = Convert.ToInt32(configInts[key]);
-                            j--;
-                            modIni.Write(key, j.ToString());
-                            configInts[key] = j.ToString();
-                        }
-
-                        if (GUILayout.Button("  +  ", ModMenuStyle.button))
-                        {
-                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
-                            var j = Convert.ToInt32(configInts[key]);
-                            j++;
-                            modIni.Write(key, j.ToString());
-                            configInts[key] = j.ToString();
-                        }
-
-                        GUILayout.Space(30);
-
-                        intList[ints] = GUILayout.TextField(intList[ints].ToString(), 10, ModMenuStyle._textFieldStyle, GUILayout.MinWidth(32));
-
-                        if (GUILayout.Button("Set Value From Textbox", ModMenuStyle.button))
-                        {
-                            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
-                            if (Int32.TryParse(intList[ints], out int n))
-                            {
-                                modIni.Write(key, intList[ints]);
-                                configInts[key] = intList[ints];
-                            }
-                        }
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndHorizontal();
-                        ints++;
+                        modConfig.configSliders[key] = newSliderValue + "|" + valMinMax[1] + "|" + valMinMax[2];
                     }
-                    else if (option == "(slider)")
-                    {
-                        IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
 
-                        var key = configSliders.Keys.ElementAt(sliders);
-                        string format = key.Remove(0, 8);
-                        string formatted = UppercaseFirst(Regex.Replace(format, "([a-z])([A-Z])", "$1 $2"));
+                    if (Input.GetKeyUp(KeyCode.Mouse0))
+                        modConfig.Save();
 
-                        string[] valMinMax = configSliders[key].Split('|');
 
-                        GUILayout.BeginHorizontal();
-                        GUILayout.FlexibleSpace();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                }
+                else if (option.Type == "header")
+                {
+                    string key = option.Key;
+                    string value = modConfig.configHeaders[key];
 
-                        GUILayout.Label(formatted + ": ", ModMenuStyle.labStyle);
-                        sliderList[sliders] = GUILayout.HorizontalSlider(sliderList[sliders], float.Parse(valMinMax[1]), float.Parse(valMinMax[2]), ModMenuStyle._sliderBackgroundStyle, ModMenuStyle._sliderThumbStyle, GUILayout.Width(300));
-                        GUILayout.Box(System.Math.Round(Double.Parse(sliderList[sliders].ToString())).ToString(), ModMenuStyle.box);
+                    GUILayout.BeginHorizontal();
+                    GUILayout.FlexibleSpace();
+                    GUILayout.Box(value, ModMenuStyle.headerBox);
+                    GUILayout.FlexibleSpace();
+                    GUILayout.EndHorizontal();
+                }
+                else if (option.Type == "gap")
+                {
+                    string key = option.Key;
+                    int value = modConfig.configGaps[key];
 
-                        modIni.Write(key, System.Math.Round(Double.Parse(sliderList[sliders].ToString())).ToString() + "|" + valMinMax[1] + "|" + valMinMax[2]);
-
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndHorizontal();
-                        sliders++;
-                    }
-                    else if (option == "(header)")
-                    {
-                        var key = configHeaders.Keys.ElementAt(headers);
-                        GUILayout.BeginHorizontal();
-                        GUILayout.FlexibleSpace();
-                        GUILayout.Box(configHeaders[key], ModMenuStyle.headerBox);
-                        GUILayout.FlexibleSpace();
-                        GUILayout.EndHorizontal();
-                        headers++;
-                    }
-                    else if (option == "(gap)")
-                    {
-                        GUILayout.Space(20);
-                    }
+                    GUILayout.Space(value);
                 }
             }
 
@@ -426,9 +397,12 @@ namespace LLModMenu
             GUILayout.BeginVertical();
             optionsTextpos = GUILayout.BeginScrollView(optionsTextpos, false, true);
 
-            if (configText.Count > 0)
+
+            Config modConfig = this.configManager.GetModConfig(currentOpenMod);
+
+            if (modConfig.configText.Count > 0)
             {
-                foreach (KeyValuePair<string, string> keyval in configText)
+                foreach (KeyValuePair<string, string> keyval in modConfig.configText)
                 {
                     GUILayout.BeginHorizontal();
                     GUILayout.Label(keyval.Value, ModMenuStyle.readStyle);
@@ -438,124 +412,6 @@ namespace LLModMenu
 
             GUILayout.EndScrollView();
             GUILayout.EndVertical();
-        }
-
-        public void WriteIni(string modName, List<string> writeQueue, Dictionary<string, string> keyBinds, Dictionary<string, string> bools, Dictionary<string, string> ints, Dictionary<string, string> sliders, Dictionary<string, string> headers, Dictionary<string, string> gaps, Dictionary<string, string> text)
-        {
-            string modIniPath = Path.Combine(iniLocation, modName + ".ini");
-            if (File.Exists(modIniPath))
-            {
-                string[] lines = File.ReadAllLines(modIniPath);
-                foreach (string key in writeQueue)
-                {
-                    try
-                    {
-                        if (!lines[writeQueue.IndexOf(key) + 1].Contains(key))
-                        {
-                            Debug.Log("ModMenu: "+ modIniPath +" has been remade because it did not match what was expected");
-                            File.Delete(modIniPath);
-                            break;
-                        };
-                    } catch
-                    {
-                        Debug.Log("ModMenu: "+ modIniPath +" has been remade because it did not match what was expected");
-                        File.Delete(modIniPath);
-                        break;
-                    }
-                }
-            }
-            IniFile modIni = new IniFile(modIniPath);
-
-
-            if (writeQueue.Count() > 0)
-            {
-                foreach (string key in writeQueue)
-                {
-                    if (key.StartsWith("(bool)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, bools[key]);
-                    }
-                    else if (key.StartsWith("(int)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, ints[key]);
-                    }
-                    else if (key.StartsWith("(slider)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, sliders[key]);
-                    }
-                    else if (key.StartsWith("(header)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, headers[key]);
-                    }
-                    else if (key.StartsWith("(gap)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, gaps[key]);
-                    }
-                    else if (key.StartsWith("(key)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, keyBinds[key]);
-                    }
-                    else if (key.StartsWith("(text)"))
-                    {
-                        if (!modIni.KeyExists(key)) modIni.Write(key, text[key]);
-                    }
-                }
-            }
-        }
-
-        public List<string> GetOptionsQueue(string modName)
-        {
-            List<string> ret = new List<string>();
-            string[] lines = File.ReadAllLines(Path.Combine(iniLocation, modName + ".ini"));
-            if (lines.Length > 0)
-            {
-                foreach (string line in lines)
-                {
-                    if (line.StartsWith("(bool)"))
-                    {
-                        ret.Add("(bool)");
-                    }
-                    else if (line.StartsWith("(int)"))
-                    {
-                        ret.Add("(int)");
-                    }
-                    else if (line.StartsWith("(slider)"))
-                    {
-                        ret.Add("(slider)");
-                    }
-                    else if (line.StartsWith("(header)"))
-                    {
-                        ret.Add("(header)");
-                    }
-                    else if (line.StartsWith("(gap)"))
-                    {
-                        ret.Add("(gap)");
-                    }
-                }
-            }
-            return ret;
-        }
-
-        IEnumerator BindKey(string key)
-        {
-            bool pressed = false;
-            configKeys[key] = "WAITING FOR KEY";
-            IniFile modIni = new IniFile(Path.Combine(iniLocation, currentOpenMod + ".ini"));
-            while (!pressed)
-            {
-                foreach (KeyCode vKey in System.Enum.GetValues(typeof(KeyCode)))
-                {
-                    if (Input.GetKey(vKey))
-                    {
-                        newKey = vKey.ToString();
-                        configKeys[key] = newKey;
-                        pressed = true;
-                        modIni.Write(key, newKey);
-                        break;
-                    }
-                }
-                yield return null;
-            }
         }
 
         static string UppercaseFirst(string s)

@@ -12,28 +12,20 @@ namespace LLModMenu
         private ModMenu mm;
         private bool mmAdded = false;
 
-        public Dictionary<string, string> configKeys = new Dictionary<string, string>();
-        public Dictionary<string, string> configBools = new Dictionary<string, string>();
-        public Dictionary<string, string> configInts = new Dictionary<string, string>();
-        public Dictionary<string, string> configSliders = new Dictionary<string, string>();
-        public Dictionary<string, string> configHeaders = new Dictionary<string, string>();
-        public Dictionary<string, string> configGaps = new Dictionary<string, string>();
-        public Dictionary<string, string> configText = new Dictionary<string, string>();
-        public List<string> writeQueue = new List<string>();
+        public List<LLModMenu.Entry> writeQueue = new List<LLModMenu.Entry>();
+
 
         private void Start()
         {
-            try { ReadIni(); } catch { Debug.Log("ModMenu: Could not load " + Path.DirectorySeparatorChar + "ModSettings" + Path.DirectorySeparatorChar + gameObject.name + ".ini" + " so we will create it instead"); }
             InitConfig();
-            ReadIni();
         }
 
         private void Update()
         {
-            mm = FindObjectOfType<ModMenu>();
-            if (mm != null)
+            if (mmAdded == false)
             {
-                if (mmAdded == false)
+                mm = FindObjectOfType<ModMenu>();
+                if (mm != null)
                 {
                     mm.mods.Add(base.gameObject.name);
                     mmAdded = true;
@@ -64,126 +56,58 @@ namespace LLModMenu
 
             // Insert your options here \/
 
-            ModMenu.Instance.WriteIni(gameObject.name, writeQueue, configKeys, configBools, configInts, configSliders, configHeaders, configGaps, configText);
+            ModMenu.Instance.configManager.InitConfig(gameObject.name, writeQueue);
             writeQueue.Clear();
-        }
-
-        public void ReadIni()
-        {
-            string[] lines = File.ReadAllLines(Path.Combine(Directory.GetParent(Application.dataPath).FullName, "ModSettings", gameObject.name + ".ini"));
-            configBools.Clear();
-            configKeys.Clear();
-            configInts.Clear();
-            configSliders.Clear();
-            configHeaders.Clear();
-            configGaps.Clear();
-            configText.Clear();
-            foreach (string line in lines)
-            {
-                if (line.StartsWith("(key)"))
-                {
-                    string[] split = line.Split('=');
-                    configKeys.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(bool)"))
-                {
-                    string[] split = line.Split('=');
-                    configBools.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(int)"))
-                {
-                    string[] split = line.Split('=');
-                    configInts.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(slider)"))
-                {
-                    string[] split = line.Split('=');
-                    configSliders.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(header)"))
-                {
-                    string[] split = line.Split('=');
-                    configHeaders.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(gap)"))
-                {
-                    string[] split = line.Split('=');
-                    configGaps.Add(split[0], split[1]);
-                }
-                else if (line.StartsWith("(text)"))
-                {
-                    string[] split = line.Split('=');
-                    configText.Add(split[0], split[1]);
-                }
-            }
         }
 
         public void AddToWriteQueue(string key, string value)
         {
-            if (key.StartsWith("(key)"))
-            {
-                configKeys.Add(key, value);
-                writeQueue.Add(key);
-            }
-            else if (key.StartsWith("(bool)"))
-            {
-                configBools.Add(key, value);
-                writeQueue.Add(key);
-            }
-            else if (key.StartsWith("(int)"))
-            {
-                configInts.Add(key, value);
-                writeQueue.Add(key);
-            }
-            else if (key.StartsWith("(slider)"))
-            {
-                configSliders.Add(key, value);
-                writeQueue.Add(key);
-            }
-            else if (key.StartsWith("(header)"))
-            {
-                configHeaders.Add(key, value);
-                writeQueue.Add(key);
-            }
-            else if (key.StartsWith("(gap)"))
-            {
-                configGaps.Add(key, value);
-                writeQueue.Add(key);
-            }
-            else if (key.StartsWith("(text)"))
-            {
-                configText.Add(key, value);
-                writeQueue.Add(key);
-            }
+            string[] splits = key.Remove(0,1).Split(')');
+            writeQueue.Add(new Entry(splits[1], value, splits[0]));
+        }
+
+        public void AddEntryToWriteQueue(string key, string value, string type)
+        {
+            writeQueue.Add(new Entry(key, value, type));
         }
 
         public KeyCode GetKeyCode(string keyCode)
         {
-            foreach (KeyCode vKey in System.Enum.GetValues(typeof(KeyCode)))
-            {
-                if (vKey.ToString() == keyCode)
-                {
-                    return vKey;
-                }
-            }
-            return KeyCode.A;
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetKeyCode(keyCode.Split(')')[1]);
+        }
+        public KeyCode NewGetKeyCode(string keyCode)
+        {
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetKeyCode(keyCode);
         }
 
         public bool GetTrueFalse(string boolName)
         {
-            if (boolName == "true") return true;
-            else return false;
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetBool(boolName.Split(')')[1]);
+        }
+
+        public bool NewGetTrueFalse(string boolName)
+        {
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetBool(boolName);
         }
 
         public int GetSliderValue(string sliderName)
         {
-            string[] vals = configSliders[sliderName].Split('|');
-            return Convert.ToInt32(vals[0]);
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetSliderValue(sliderName.Split(')')[1]);
+        }
+
+        public int NewGetSliderValue(string sliderName)
+        {
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetSliderValue(sliderName);
         }
 
         public int GetInt(string intName)
         {
-            return Convert.ToInt32(configInts[intName]);
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetInt(intName.Split(')')[1]);
+        }
+
+        public int NewGetInt(string intName)
+        {
+            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetInt(intName);
         }
     }
 }
