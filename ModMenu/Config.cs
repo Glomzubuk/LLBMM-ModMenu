@@ -66,7 +66,7 @@ namespace LLModMenu
 
         public void Load(List<Entry> options)
         {
-            Debug.Log("Yes? who's calling? Hello, it's " + System.Environment.StackTrace);
+            //Debug.Log("Who's Loading? It's " + new System.Diagnostics.StackTrace().ToString());
 
             this.optionList = options;
             this.configInts.Clear();
@@ -113,14 +113,26 @@ namespace LLModMenu
 
         public void Save(bool willStore = true)
         {
-            this.optionList.Clear();
-            foreach (var config in configInts) optionList.Add(new Entry(config.Key, config.Value.ToString(), "int"));
-            foreach (var config in configBools) optionList.Add(new Entry(config.Key, config.Value.ToString(), "bool"));
-            foreach (var config in configKeys) optionList.Add(new Entry(config.Key, config.Value.ToString(), "key"));
-            foreach (var config in configSliders) optionList.Add(new Entry(config.Key, config.Value, "slider"));
-            foreach (var config in configGaps) optionList.Add(new Entry(config.Key, config.Value.ToString(), "gap"));
-            foreach (var config in configHeaders) optionList.Add(new Entry(config.Key, config.Value, "header"));
-            foreach (var config in configText) optionList.Add(new Entry(config.Key, config.Value, "text"));
+            foreach (Entry entry in this.optionList)
+            {
+                switch (entry.Type)
+                {
+                    case "int":
+                        entry.Value = this.configInts[entry.Key].ToString(); break;
+                    case "bool":
+                        entry.Value = this.configBools[entry.Key].ToString(); break;
+                    case "key":
+                        entry.Value = this.configKeys[entry.Key].ToString(); break;
+                    case "gap":
+                        entry.Value = this.configGaps[entry.Key].ToString(); break;
+                    case "slider":
+                        entry.Value = this.configSliders[entry.Key]; break;
+                    case "header":
+                        entry.Value = this.configHeaders[entry.Key]; break;
+                    case "text":
+                        entry.Value = this.configText[entry.Key]; break;
+                }
+            }
 
             if (willStore)
                 configFile.Store(optionList);
@@ -128,25 +140,38 @@ namespace LLModMenu
 
         public void Init(List<Entry> writeQueue)
         {
+            bool identical = true;
             if (this.optionList.Count != writeQueue.Count)
             {
-                this.Load(writeQueue);
-                this.Save();
-                Debug.Log("ModMenu: " + configFile.GetPath() + " has been remade because it did not match what was expected");
-
+                identical = false;
+                Debug.Log("ModMenu: optionList and writeQueue did not have the same number of entries: " + this.optionList.Count + " vs " + writeQueue.Count);
             }
             else
             {
                 for (int i = 0;  i < this.optionList.Count; i++)
                 {
-                    if (this.optionList[i].Key != writeQueue[i].Key || this.optionList[i].Type != writeQueue[i].Type)
+                    if (!this.optionList[i].Key.Equals(writeQueue[i].Key))
                     {
-                        this.Load(writeQueue);
-                        this.Save();
-                        Debug.Log("ModMenu: " + configFile.GetPath() + " has been remade because it did not match what was expected");
+                        Debug.Log("ModMenu: optionList and writeQueue had differing keys: \"" + this.optionList[i].Key + "\" vs \"" + writeQueue[i].Key + "\"");
+                        identical = false;
+                        break;
+                    }
+                    else if (this.optionList[i].Type != writeQueue[i].Type)
+                    {
+                        Debug.Log("ModMenu: optionList and writeQueue had" + this.optionList[i].Key + " differing type: " + this.optionList[i].Type + " vs " + writeQueue[i].Type);
+                        identical = false;
+                        break;
                     }
                 }
             }
+
+            if (!identical)
+            {
+                this.Load(writeQueue);
+                this.Save();
+                Debug.Log("ModMenu: " + configFile.GetPath() + " has been remade because it did not match what was expected");
+            }
+
         }
 
         public void Delete()

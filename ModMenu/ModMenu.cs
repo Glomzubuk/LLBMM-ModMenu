@@ -29,6 +29,7 @@ namespace LLModMenu
         public string currentOpenMod = "";
         private string previousOpenMod = "";
 
+        private bool sliderChange = false;
         private string keyToRebind = "";
         private bool rebindingKey = false;
         private readonly Array keyCodes = System.Enum.GetValues(typeof(KeyCode));
@@ -47,6 +48,12 @@ namespace LLModMenu
 
         private void Update()
         {
+            if (this.sliderChange && Input.GetKeyUp(KeyCode.Mouse0))
+            {
+                Config modConfig = configManager.GetModConfig(this.currentOpenMod);
+                modConfig.Save();
+                this.sliderChange = false;
+            }
 
             if (this.rebindingKey && Input.anyKeyDown)
             {
@@ -115,10 +122,7 @@ namespace LLModMenu
 
             if (inModSubOptions && this.currentOpenMod != this.previousOpenMod) //If we are within the options of a spiesific mod.
             {
-                Debug.Log("prev: " + previousOpenMod + " | current: " + currentOpenMod);
                 this.previousOpenMod = this.currentOpenMod;
-                //Component comp = GameObject.Find(currentOpenMod).GetComponent(currentOpenMod); //Get the script for that mod.
-                //comp.SendMessage("ReadIni"); //Tell it to run the "ReadIni" method.
                 this.configManager.GetModConfig(this.currentOpenMod).LoadFromFile();
             }
 
@@ -356,12 +360,9 @@ namespace LLModMenu
                     int newSliderValue = (int)System.Math.Round(sliderValue);
                     if (newSliderValue != storedSliderValue)
                     {
+                        this.sliderChange = true;
                         modConfig.configSliders[key] = newSliderValue + "|" + valMinMax[1] + "|" + valMinMax[2];
                     }
-
-                    if (Input.GetKeyUp(KeyCode.Mouse0))
-                        modConfig.Save();
-
 
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();

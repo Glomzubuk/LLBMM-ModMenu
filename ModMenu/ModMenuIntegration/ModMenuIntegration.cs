@@ -63,6 +63,11 @@ namespace LLModMenu
         public void AddToWriteQueue(string key, string value)
         {
             string[] splits = key.Remove(0,1).Split(')');
+            if(splits[0] == "bool")
+            {
+                if (value == "true") value = "True";
+                if (value == "false") value = "False";
+            }
             writeQueue.Add(new Entry(splits[1], value, splits[0]));
         }
 
