@@ -309,18 +309,7 @@ namespace LLModMenu
                     GUILayout.Space(10);
 
                     bool isMinusPressed = GUILayout.Button("  -  ", ModMenuStyle.button);
-                    if (isMinusPressed)
-                    {
-                        modConfig.configInts[key] = value - 1;
-                        modConfig.Save();
-                    }
-
                     bool isPlusPressed = GUILayout.Button("  +  ", ModMenuStyle.button);
-                    if (isPlusPressed)
-                    {
-                        modConfig.configInts[key] = value + 1;
-                        modConfig.Save();
-                    }
 
 
                     GUILayout.Space(30);
@@ -328,11 +317,25 @@ namespace LLModMenu
                     string intValue = GUILayout.TextField(value.ToString(), 10, ModMenuStyle._textFieldStyle, GUILayout.MinWidth(32));
 
                     bool isFromTextPressed = GUILayout.Button("Set Value From Textbox", ModMenuStyle.button);
-                    if (Int32.TryParse(intValue, out int n))
+
+                    if (isPlusPressed)
                     {
-                        modConfig.configInts[key] = n;
+                        modConfig.configInts[key] = value + 1;
+                        modConfig.Save();
+                    } else if (isMinusPressed)
+                    {
+                        modConfig.configInts[key] = value - 1;
+                        modConfig.Save();
+                    } else if (Int32.TryParse(intValue, out int n))
+                    {
+                        if (modConfig.configInts[key] != n)
+                        {
+                            modConfig.configInts[key] = n;
+                            modConfig.Save();
+                        }
                         if (isFromTextPressed)
                         {
+                            modConfig.configInts[key] = n;
                             modConfig.Save();
                         }
                     }

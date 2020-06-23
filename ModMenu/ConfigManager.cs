@@ -19,19 +19,21 @@ namespace LLModMenu
         {
             if (!configs.ContainsKey(modName))
             {
-                //configs.Add(modName, new Config(Path.Combine(this.configDirectoryPath, modName)));
                 throw new KeyNotFoundException("This config does not exists or has not yet been initialized");
             }
             return configs[modName];
         }
 
-        public void InitConfig(string modName, List<Entry> writeQueue)
+        public Config InitConfig(string modName, List<Entry> writeQueue)
         {
             if (!configs.ContainsKey(modName))
             {
                 configs.Add(modName, new Config(Path.Combine(this.configDirectoryPath, modName)));
             }
-            configs[modName].Init(writeQueue);
+
+            Config conf = configs[modName];
+            conf.Init(writeQueue);
+            return conf;
         }
     }
 }

@@ -9,10 +9,11 @@ namespace LLModMenu
 {
     public class ModMenuIntegration : MonoBehaviour
     {
+        private Config config;
         private ModMenu mm;
         private bool mmAdded = false;
 
-        public List<LLModMenu.Entry> writeQueue = new List<LLModMenu.Entry>();
+        public List<Entry> writeQueue = new List<Entry>();
 
 
         private void Start()
@@ -56,7 +57,7 @@ namespace LLModMenu
 
             // Insert your options here \/
 
-            ModMenu.Instance.configManager.InitConfig(gameObject.name, writeQueue);
+            this.config = ModMenu.Instance.configManager.InitConfig(gameObject.name, writeQueue);
             writeQueue.Clear();
         }
 
@@ -73,46 +74,51 @@ namespace LLModMenu
 
         public void AddEntryToWriteQueue(string key, string value, string type)
         {
+            if (type == "bool")
+            {
+                if (value == "true") value = "True";
+                if (value == "false") value = "False";
+            }
             writeQueue.Add(new Entry(key, value, type));
         }
 
-        public KeyCode GetKeyCode(string keyCode)
+        public KeyCode GetKeyCode(string keyName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetKeyCode(keyCode.Split(')')[1]);
+            return this.config.GetKeyCode(keyName.Split(')')[1]);
         }
-        public KeyCode NewGetKeyCode(string keyCode)
+        public KeyCode NewGetKeyCode(string keyName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetKeyCode(keyCode);
+            return this.config.GetKeyCode(keyName);
         }
 
         public bool GetTrueFalse(string boolName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetBool(boolName.Split(')')[1]);
+            return this.config.GetBool(boolName.Split(')')[1]);
         }
 
         public bool NewGetTrueFalse(string boolName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetBool(boolName);
+            return this.config.GetBool(boolName);
         }
 
         public int GetSliderValue(string sliderName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetSliderValue(sliderName.Split(')')[1]);
+            return this.config.GetSliderValue(sliderName.Split(')')[1]);
         }
 
         public int NewGetSliderValue(string sliderName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetSliderValue(sliderName);
+            return this.config.GetSliderValue(sliderName);
         }
 
         public int GetInt(string intName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetInt(intName.Split(')')[1]);
+            return this.config.GetInt(intName.Split(')')[1]);
         }
 
         public int NewGetInt(string intName)
         {
-            return ModMenu.Instance.configManager.GetModConfig(gameObject.name).GetInt(intName);
+            return this.config.GetInt(intName);
         }
     }
 }
