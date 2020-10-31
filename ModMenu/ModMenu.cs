@@ -69,9 +69,15 @@ namespace LLModMenu
                 }
             }
 
-            if (!Directory.Exists(iniLocation)) Directory.CreateDirectory(iniLocation);
-            if (mainmenu == null) { mainmenu = FindObjectOfType<ScreenMenu>(); }
-            if (submenu == null) { submenu = UIScreen.currentScreens[1]; }
+            if (!Directory.Exists(iniLocation))
+                Directory.CreateDirectory(iniLocation);
+            if (mainmenu == null)
+                mainmenu = FindObjectOfType<ScreenMenu>();
+
+            if (submenu == null)
+            {
+                submenu = UIScreen.currentScreens[1];
+            }
             else
             {
 
@@ -197,7 +203,6 @@ namespace LLModMenu
             var y1 = Screen.height / 10;
             var x2 = Screen.width - (Screen.width/6)*2;
             var y2 = Screen.height - (Screen.height / 6);
-            GUI.Box(new Rect(10, 10, 20, 20), "ModMenu " + modVersion, ModMenuStyle.versionBox);
 
 
             if (inModSubOptions)
@@ -272,7 +277,7 @@ namespace LLModMenu
 
             foreach (Entry option in tmpOptionList)
             {
-                if (option.Type == "bool")
+                if (option.Type == EntryType.BOOLEAN)
                 {
                     string key = option.Key;
                     bool val = modConfig.GetBool(key);
@@ -296,7 +301,7 @@ namespace LLModMenu
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
                 }
-                else if (option.Type == "int")
+                else if (option.Type == EntryType.NUMERIC)
                 {
                     string key = option.Key;
                     int value = modConfig.GetInt(key);
@@ -342,7 +347,7 @@ namespace LLModMenu
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
                 }
-                else if (option.Type == "slider")
+                else if (option.Type == EntryType.SLIDER)
                 {
 
                     string key = option.Key;
@@ -370,7 +375,7 @@ namespace LLModMenu
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
                 }
-                else if (option.Type == "header")
+                else if (option.Type == EntryType.HEADER)
                 {
                     string key = option.Key;
                     string value = modConfig.configHeaders[key];
@@ -381,7 +386,7 @@ namespace LLModMenu
                     GUILayout.FlexibleSpace();
                     GUILayout.EndHorizontal();
                 }
-                else if (option.Type == "gap")
+                else if (option.Type == EntryType.GAP)
                 {
                     string key = option.Key;
                     int value = modConfig.configGaps[key];

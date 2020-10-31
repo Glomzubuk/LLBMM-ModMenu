@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using LLModMenu;
-using System.IO;
-using System;
 
 namespace LLModMenu
 {
@@ -13,7 +11,7 @@ namespace LLModMenu
         private ModMenu mm;
         private bool mmAdded = false;
 
-        public List<Entry> writeQueue = new List<Entry>();
+        public List<LLModMenu.Entry> writeQueue = new List<LLModMenu.Entry>();
 
 
         private void Start()
@@ -64,17 +62,25 @@ namespace LLModMenu
         public void AddToWriteQueue(string key, string value)
         {
             string[] splits = key.Remove(0,1).Split(')');
-            if(splits[0] == "bool")
+            EntryType type;
+            switch(splits[0])
             {
-                if (value == "true") value = "True";
-                if (value == "false") value = "False";
+                case "bool": type = EntryType.BOOLEAN; break;
+                case "int": type = EntryType.NUMERIC; break;
+                case "key": type = EntryType.KEY; break;
+                case "gap": type = EntryType.GAP; break;
+                case "slider": type = EntryType.SLIDER; break;
+                case "string": type = EntryType.STRING; break;
+                case "header": type = EntryType.HEADER; break;
+                case "text": type = EntryType.TEXT; break;
+                default: type = EntryType.TEXT; break;
             }
-            writeQueue.Add(new Entry(splits[1], value, splits[0]));
+            AddEntryToWriteQueue(splits[1], value, type);
         }
 
-        public void AddEntryToWriteQueue(string key, string value, string type)
+        public void AddEntryToWriteQueue(string key, string value, EntryType type)
         {
-            if (type == "bool")
+            if (type == EntryType.BOOLEAN)
             {
                 if (value == "true") value = "True";
                 if (value == "false") value = "False";

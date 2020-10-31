@@ -11,17 +11,28 @@ namespace LLModMenu
         XML,
         INI
     }
+    public enum EntryType
+    {
+        NUMERIC,
+        STRING,
+        BOOLEAN,
+        KEY,
+        GAP,
+        SLIDER,
+        HEADER,
+        TEXT,
+    }
     public class Entry
     {
         public string Key;
         public string Value;
-        public string Type;
+        public EntryType Type;
         public int Order;
         public Entry()
         {
         }
 
-        public Entry(string key, string value, string type = "string", int order = -1)
+        public Entry(string key, string value, EntryType type = EntryType.TEXT, int order = -1)
         {
             Key = key;
             Value = value;
@@ -82,20 +93,22 @@ namespace LLModMenu
                 //Debug.Log("Loading entry: " + entry.Key + " | " + entry.Value + " | " + entry.Type);
                 switch (entry.Type)
                 {
-                    case "int":
+                    case EntryType.NUMERIC:
                         this.configInts.Add(entry.Key, Convert.ToInt32(entry.Value)); break;
-                    case "bool":
+                    case EntryType.BOOLEAN:
                         this.configBools.Add(entry.Key, entry.Value == "True" || entry.Value == "true"); break;
-                    case "key":
+                    case EntryType.KEY:
                         this.configKeys.Add(entry.Key, ParseKeyCode(entry.Value)); break;
-                    case "gap":
+                    case EntryType.GAP:
                         this.configGaps.Add(entry.Key, Convert.ToInt32(entry.Value)); break;
-                    case "slider":
+                    case EntryType.SLIDER:
                         this.configSliders.Add(entry.Key, entry.Value); break;
-                    case "header":
+                    case EntryType.HEADER:
                         this.configHeaders.Add(entry.Key, entry.Value); break;
-                    case "text":
+                    case EntryType.TEXT:
                         this.configText.Add(entry.Key, entry.Value); break;
+                    default:
+                        throw new System.NotImplementedException();
                 }
             }
         }
@@ -117,20 +130,22 @@ namespace LLModMenu
             {
                 switch (entry.Type)
                 {
-                    case "int":
+                    case EntryType.NUMERIC:
                         entry.Value = this.configInts[entry.Key].ToString(); break;
-                    case "bool":
+                    case EntryType.BOOLEAN:
                         entry.Value = this.configBools[entry.Key].ToString(); break;
-                    case "key":
+                    case EntryType.KEY:
                         entry.Value = this.configKeys[entry.Key].ToString(); break;
-                    case "gap":
+                    case EntryType.GAP:
                         entry.Value = this.configGaps[entry.Key].ToString(); break;
-                    case "slider":
+                    case EntryType.SLIDER:
                         entry.Value = this.configSliders[entry.Key]; break;
-                    case "header":
+                    case EntryType.HEADER:
                         entry.Value = this.configHeaders[entry.Key]; break;
-                    case "text":
+                    case EntryType.TEXT:
                         entry.Value = this.configText[entry.Key]; break;
+                    default:
+                        throw new System.NotImplementedException();
                 }
             }
 
