@@ -251,7 +251,6 @@
     <Compile Include="ModMenu.cs" />
     <Compile Include="ModMenuIntegration\ModMenuIntegration.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="JsonFile.cs" />
     <Compile Include="IConfigFile.cs" />
     <Compile Include="XMLFile.cs" />
     <Compile Include="Config.cs" />
