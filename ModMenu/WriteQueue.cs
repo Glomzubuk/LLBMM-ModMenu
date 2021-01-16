@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEngine;
 
 namespace LLModMenu
 {
@@ -27,7 +28,7 @@ namespace LLModMenu
                 case "text": type = EntryType.TEXT; break;
                 default: type = EntryType.TEXT; break;
             }
-            AddEntry(splits[1], value, type);
+            AddEntry(key, value, type);
         }
 
         public void AddEntry(string key, string value, EntryType type)
