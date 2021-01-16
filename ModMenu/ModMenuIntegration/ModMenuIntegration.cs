@@ -18,23 +18,25 @@ namespace YourMod
              */
             /*
             // Old Notation:
+            // You Have to use the "Old" methods to use this, like "OldGetTrueFalse"
+            // Note that KeyCodes accesses will be broken, you should now use them like the others and call OldGetKeyCode("(key)yourkey")
             // Keybindings:
-            writeQueue.Add("(key)keyName", "LeftShift");           value can be: Any KeyCode as a string e.g. "LeftShift"
+            writeQueue.Add("(key)keyName", "LeftShift");         // value can be: Any KeyCode as a string e.g. "LeftShift"
 
             // Options:
-            writeQueue.Add("(bool)boolName", "true");              value can be: ["true" | "false"]
-            writeQueue.Add("(int)intName", "27313");               value can be: any number as a string. For instance "123334"
-            writeQueue.Add("(slider)sliderName", "50|0|100");      value must be: "Default value|Min Value|MaxValue"
-            writeQueue.Add("(header)headerName", "Header Text");   value can be: Any string
-            writeQueue.Add("(gap)gapName", "identifier");          value does not matter, just make name and value unique from other gaps
+            writeQueue.Add("(bool)boolName", "true");            // value can be: ["true" | "false"]
+            writeQueue.Add("(int)intName", "27313");             // value can be: any number as a string. For instance "123334"
+            writeQueue.Add("(slider)sliderName", "50|0|100");    // value must be: "Default value|Min Value|MaxValue"
+            writeQueue.Add("(header)headerName", "Header Text"); // value can be: Any string
+            writeQueue.Add("(gap)gapName", "identifier");        // value can be: any number representing the size of the gap
 
             // ModInformation:
-            writeQueue.Add("(text)text1", "Descriptive text");     value can be: Any string
+            writeQueue.Add("(text)text1", "Descriptive text");   // value can be: Any string
             */
             /*
             // New Notation:  
             // Keybindings:
-            writeQueue.AddEntry("keyName", "A", EntryType.KEY); // value can be: Any KeyCode as a string e.g. "LeftShift"
+            writeQueue.AddEntry("keyName", "A", EntryType.KEY);                  // value can be: Any KeyCode as a string e.g. "LeftShift"
 
             // Options:
             writeQueue.AddEntry("boolName", "true", EntryType.BOOLEAN);          // value can be: ["true" | "false"]

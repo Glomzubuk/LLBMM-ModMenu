@@ -176,23 +176,56 @@ namespace LLModMenu
 
         public KeyCode GetKeyCode(string optionName)
         {
-            return configKeys[optionName];
+            if (configKeys.ContainsKey(optionName))
+            {
+                return configKeys[optionName];
+            }
+            else
+            {
+                Debug.Log("Non existing key access: "+ optionName +"\nStacktrace: " + new System.Diagnostics.StackTrace().ToString());
+                throw new KeyNotFoundException();
+            }
         }
 
         public bool GetBool(string optionName)
         {
-            return configBools[optionName];
+            if (configBools.ContainsKey(optionName))
+            {
+                return configBools[optionName];
+            }
+            else
+            {
+                Debug.Log("Non existing bool access: " + optionName + "\nStacktrace: " + new System.Diagnostics.StackTrace().ToString());
+                throw new KeyNotFoundException();
+            }
+
         }
 
         public int GetSliderValue(string optionName)
         {
-            string[] vals = configSliders[optionName].Split('|');
-            return Convert.ToInt32(vals[0]);
+            if (configSliders.ContainsKey(optionName))
+            {
+                string[] vals = configSliders[optionName].Split('|');
+                return Convert.ToInt32(vals[0]);
+            }
+            else
+            {
+                Debug.Log("Non existing slider access: " + optionName + "\nStacktrace: " + new System.Diagnostics.StackTrace().ToString());
+                throw new KeyNotFoundException();
+            }
         }
 
         public int GetInt(string optionName)
         {
-            return configInts[optionName];
+            if (configInts.ContainsKey(optionName))
+            {
+                return configInts[optionName];
+            }
+            else
+            {
+                Debug.Log("Non existing int access: " + optionName + "\nStacktrace: " + new System.Diagnostics.StackTrace().ToString());
+                throw new KeyNotFoundException();
+            }
         }
     }
 }

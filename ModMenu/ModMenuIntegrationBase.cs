@@ -39,16 +39,9 @@ namespace LLModMenu
         }
 
 
-        public KeyCode OldGetKeyCode(string keyCode)
+        public KeyCode OldGetKeyCode(string keyName)
         {
-            foreach (KeyCode vKey in System.Enum.GetValues(typeof(KeyCode)))
-            {
-                if (vKey.ToString() == keyCode)
-                {
-                    return vKey;
-                }
-            }
-            return KeyCode.A;
+            return this.config.GetKeyCode(keyName.Split(')')[1]);
         }
         public KeyCode GetKeyCode(string keyName)
         {
