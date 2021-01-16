@@ -11,35 +11,6 @@ namespace LLModMenu
         XML,
         INI
     }
-    public enum EntryType
-    {
-        NUMERIC,
-        STRING,
-        BOOLEAN,
-        KEY,
-        GAP,
-        SLIDER,
-        HEADER,
-        TEXT,
-    }
-    public class Entry
-    {
-        public string Key;
-        public string Value;
-        public EntryType Type;
-        public int Order;
-        public Entry()
-        {
-        }
-
-        public Entry(string key, string value, EntryType type = EntryType.TEXT, int order = -1)
-        {
-            Key = key;
-            Value = value;
-            Type = type;
-            Order = order;
-        }
-    }
     public class Config
     {
         private IConfigFile configFile;
@@ -153,27 +124,28 @@ namespace LLModMenu
                 configFile.Store(optionList);
         }
 
-        public void Init(List<Entry> writeQueue)
+        public void Init(WriteQueue writeQueue)
         {
+            List<Entry> entries = writeQueue.GetEntries();
             bool identical = true;
-            if (this.optionList.Count != writeQueue.Count)
+            if (this.optionList.Count != entries.Count)
             {
                 identical = false;
-                Debug.Log("ModMenu: optionList and writeQueue did not have the same number of entries: " + this.optionList.Count + " vs " + writeQueue.Count);
+                Debug.Log("ModMenu: optionList and writeQueue did not have the same number of entries: " + this.optionList.Count + " vs " + entries.Count);
             }
             else
             {
                 for (int i = 0;  i < this.optionList.Count; i++)
                 {
-                    if (!this.optionList[i].Key.Equals(writeQueue[i].Key))
+                    if (!this.optionList[i].Key.Equals(entries[i].Key))
                     {
-                        Debug.Log("ModMenu: optionList and writeQueue had differing keys: \"" + this.optionList[i].Key + "\" vs \"" + writeQueue[i].Key + "\"");
+                        Debug.Log("ModMenu: optionList and writeQueue had differing keys: \"" + this.optionList[i].Key + "\" vs \"" + entries[i].Key + "\"");
                         identical = false;
                         break;
                     }
-                    else if (this.optionList[i].Type != writeQueue[i].Type)
+                    else if (this.optionList[i].Type != entries[i].Type)
                     {
-                        Debug.Log("ModMenu: optionList and writeQueue had" + this.optionList[i].Key + " differing type: " + this.optionList[i].Type + " vs " + writeQueue[i].Type);
+                        Debug.Log("ModMenu: optionList and writeQueue had" + this.optionList[i].Key + " differing type: " + this.optionList[i].Type + " vs " + entries[i].Type);
                         identical = false;
                         break;
                     }
@@ -182,7 +154,7 @@ namespace LLModMenu
 
             if (!identical)
             {
-                this.Load(writeQueue);
+                this.Load(entries);
                 this.Save();
                 Debug.Log("ModMenu: " + configFile.GetPath() + " has been remade because it did not match what was expected");
             }

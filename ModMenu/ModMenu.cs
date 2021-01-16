@@ -37,8 +37,6 @@ namespace LLModMenu
         public Vector2 optionsScrollpos = new Vector2(0, 0);
         public Vector2 optionsTextpos = new Vector2(0, 0);
 
-        public ModMenuIntegration MMI = null;
-
         public int switchInputModeTimer = 0;
 
         private string modVersion = "v1.1.0";

@@ -24,7 +24,7 @@ namespace LLModMenu
             return configs[modName];
         }
 
-        public Config InitConfig(string modName, List<Entry> writeQueue)
+        public Config InitConfig(string modName, WriteQueue writeQueue)
         {
             if (!configs.ContainsKey(modName))
             {
