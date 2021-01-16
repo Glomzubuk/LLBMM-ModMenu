@@ -31,26 +31,6 @@ namespace LLModMenu
         virtual protected void InitConfig()
         {
             WriteQueue writeQueue = new WriteQueue();
-            /*
-             * Mod menu now uses a single function to add options etc. (AddToWriteQueue)
-             * your specified options should be added to this function in the same format as stated under
-             * 
-            Keybindings:
-            writeQueue.Add("(key)keyName", "LeftShift");                                       value can be: Any KeyCode as a string e.g. "LeftShift"
-
-            Options:
-            writeQueue.Add("(bool)boolName", "true");                                          value can be: ["true" | "false"]
-            writeQueue.Add("(int)intName", "27313");                                           value can be: any number as a string. For instance "123334"
-            writeQueue.Add("(slider)sliderName", "50|0|100");                                  value must be: "Default value|Min Value|MaxValue"
-            writeQueue.Add("(header)headerName", "Header Text");                               value can be: Any string
-            writeQueue.Add("(gap)gapName", "identifier");                                      value does not matter, just make name and value unique from other gaps
-
-            ModInformation:
-            writeQueue.Add("(text)text1", "Descriptive text");                                  value can be: Any string
-            */
-
-
-            // Insert your options here \/
 
             writeQueue.AddEntry("undefInitConfig", "To the mod Dev: You have not defined your InitConfig properly", EntryType.TEXT);
 
