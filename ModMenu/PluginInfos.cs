@@ -4,7 +4,7 @@ using ModMenu;
 #region Assembly attributes
 /*
  * These attributes define various metainformation of the generated DLL.
- * In general, you don't need to touch these. Instead, edit the values in PluginInfo. 
+ * In general, you don't need to touch these. Instead, edit the values in PluginInfo.
  */
 [assembly: AssemblyVersion(PluginInfos.PLUGIN_VERSION)]
 [assembly: AssemblyTitle(PluginInfos.PLUGIN_NAME + " (" + PluginInfos.PLUGIN_ID + ")")]
@@ -25,7 +25,7 @@ namespace ModMenu
     {
         /// <summary>
         /// Human-readable name of the plugin. In general, it should be short and concise.
-        /// This is the name that is shown to the users who run BepInEx and to modders that inspect BepInEx logs. 
+        /// This is the name that is shown to the users who run BepInEx and to modders that inspect BepInEx logs.
         /// </summary>
         public const string PLUGIN_NAME = "ModMenu";
 
@@ -42,6 +42,6 @@ namespace ModMenu
         /// Version of the plugin. Must be in form <major>.<minor>.<build>.<revision>.
         /// Major and minor versions are mandatory, but build and revision can be left unspecified.
         /// </summary>
-        public const string PLUGIN_VERSION = "1.3.1";
+        public const string PLUGIN_VERSION = "1.3.2";
     }
 }
