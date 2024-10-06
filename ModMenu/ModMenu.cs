@@ -30,7 +30,6 @@ namespace ModMenu
 
         private ScreenMenu mainmenu = null;
         private ScreenBase submenu = null;
-        private AccessTools.FieldRef<object, ScreenBase[]> _currentScreens = AccessTools.FieldRefAccess<ScreenBase[]>(typeof(LLScreen.UIScreen), "currentScreens");
         private LLButton modSettingsButton = null;
         public List<LLButton> modButtons = new List<LLButton>();
 
@@ -76,12 +75,12 @@ namespace ModMenu
                     }
                 }
             }
-            if (mainmenu == null)
-                mainmenu = FindObjectOfType<ScreenMenu>();
 
+            if (mainmenu == null && UIScreen.currentScreens[0] is ScreenMenu screen0)
+                mainmenu = screen0;
             if (submenu == null)
             {
-                submenu = _currentScreens.Invoke()[1];
+                submenu = UIScreen.currentScreens[1];
             }
             else
             {
@@ -159,7 +158,7 @@ namespace ModMenu
                     }
                 }
             }
-            if (_currentScreens.Invoke()[1].screenType == ScreenType.MENU_OPTIONS)
+            if (UIScreen.currentScreens[1].screenType == ScreenType.MENU_OPTIONS)
             {
                 mainmenu.lbTitle.text = "OPTIONS";
                 inModOptions = false;
@@ -222,6 +221,8 @@ namespace ModMenu
         private GUI.WindowFunction textWindowFunction = null;
         private void OnGUI()
         {
+
+
             if (keybindWindowFunction == null)
                 keybindWindowFunction = new GUI.WindowFunction(OpenKeybindsWindow);
             if (optionsWindowFunction == null)
@@ -524,7 +525,7 @@ namespace ModMenu
                 modConfig.SaveOnConfigSet = false;
                 modConfig[setting].BoxedValue = textFieldString;
             }
-            
+
             bool isFromTextPressed = GUILayout.Button("Set Value", llbButtonStyle);
             bool isBrowseFilesPressed = GUILayout.Button("Browse Files", ModMenuStyle.button);
             GUILayout.FlexibleSpace();
@@ -542,9 +543,9 @@ namespace ModMenu
                 if (settingTags.Contains("modmenu_directorypicker"))
                 {
                     SFB.StandaloneFileBrowser.OpenFolderPanelAsync(
-                        "Select Folder for: " + modConfig[setting].Definition.Key, 
-                        value, 
-                        false, 
+                        "Select Folder for: " + modConfig[setting].Definition.Key,
+                        value,
+                        false,
                         FileSelectionCallback(modConfig[setting])
                     );
                 } else if (settingTags.Contains("modmenu_filepicker"))
