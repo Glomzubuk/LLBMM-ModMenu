@@ -41,11 +41,11 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="System" />
     <Reference Include="Assembly-CSharp">
-      <HintPath>Libs\Assembly-CSharp.dll</HintPath>
+      <HintPath>Libs\Assembly-CSharp-publicized.dll</HintPath>
       <Private>False</Private>
     </Reference>
+    <Reference Include="System" />
     <Reference Include="TextMeshPro">
       <HintPath>Libs\TextMeshPro.dll</HintPath>
       <Private>False</Private>
@@ -78,11 +78,10 @@
       <HintPath>Libs\BepInEx.dll</HintPath>
       <Private>False</Private>
     </Reference>
-    <Reference Include="System.Drawing">
-      <Private>True</Private>
-    </Reference>
+    <Reference Include="System.Drawing" />
     <Reference Include="SFB">
       <HintPath>Libs\SFB.dll</HintPath>
+      <Private>False</Private>
     </Reference>
   </ItemGroup>
   <ItemGroup>
